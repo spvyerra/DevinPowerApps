@@ -38,6 +38,13 @@ The file input cannot be refilled, so the user picks the screenshot again.
 
 Server actions accept bodies up to 6 MB (`experimental.serverActions.bodySizeLimit`), so a 5 MB screenshot fits with multipart overhead.
 
+The Devin integration uses the v3 API (`/v3/organizations/{org_id}/...`), because v1 and v2 keys are legacy and service-user keys (`cog_...`) only work on v3.
+That is why `DEVIN_ORG_ID` is needed next to `DEVIN_API_KEY`.
+`DEVIN_API_URL` defaults to `https://api.devin.ai` and exists so the smoke test can point at a fake Devin server.
+The requests page refreshes every session that has not finished on each view, one API call per session.
+That is fine for a demo; with many requests, move the refresh to a background poll or a webhook.
+If starting the session fails, the request is kept with status `failed` and its prompt can still be pasted by hand.
+
 ## Rejected approaches
 
 Google fonts through `next/font/google` were dropped from the scaffold, because they need network access at build time and the MVP runs locally.
@@ -45,10 +52,6 @@ Google fonts through `next/font/google` were dropped from the scaffold, because 
 ## Deferred
 
 Cloud hosting and a deploy workflow wait until a hosting target is chosen.
-Devin API calls wait on a Devin service-user API key.
-TODO when the key exists: in the Creator's server action, upload the screenshot as a Devin attachment, create a session with the prompt from `buildPrompt`, and store the session id and URL on the request.
-Then add status, session, and PR columns to `app_requests`, and refresh them on the requests page.
-Check the endpoint shapes against docs.devin.ai first.
 
 ## Target design
 

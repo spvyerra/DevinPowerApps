@@ -10,8 +10,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listApps } from "@/lib/catalog";
 import { services } from "@/lib/services";
-import { buildPrompt } from "@/lib/devin";
-import { createRequest } from "@/lib/db";
+import { buildPrompt, devinEnabled, startSession } from "@/lib/devin";
+import { createRequest, updateRequest } from "@/lib/db";
 import { CreateForm, type CreateState } from "./form";
 
 const maxScreenshotBytes = 5 * 1024 * 1024;
@@ -55,6 +55,7 @@ async function createApp(_state: CreateState, formData: FormData): Promise<Creat
   }
 
   let screenshotPath: string | null = null;
+  let screenshotFile: File | null = null;
   if (screenshot instanceof File && screenshot.size > 0) {
     if (screenshot.size > maxScreenshotBytes) return fail("The screenshot must be 5 MB or smaller.");
     const bytes = new Uint8Array(await screenshot.arrayBuffer());
@@ -63,15 +64,26 @@ async function createApp(_state: CreateState, formData: FormData): Promise<Creat
     await mkdir(uploadsDir, { recursive: true });
     screenshotPath = join(uploadsDir, `${randomUUID()}.${type}`);
     await writeFile(screenshotPath, bytes);
+    screenshotFile = screenshot;
   }
 
   const prompt = buildPrompt({ name, slug, description, requesterEmail: email, services: chosen, docLinks, hasScreenshot: screenshotPath !== null });
+  let id: number;
   try {
-    createRequest({ requesterEmail: email, name, slug, description, screenshotPath, services: chosen, docLinks, prompt });
+    id = createRequest({ requesterEmail: email, name, slug, description, screenshotPath, services: chosen, docLinks, prompt });
   } catch (error) {
     if (screenshotPath) await rm(screenshotPath, { force: true });
     if ((error as { errcode?: number }).errcode === sqliteUniqueViolation) return fail(`An app named "${slug}" is already requested.`);
     throw error;
+  }
+  if (devinEnabled()) {
+    try {
+      const session = await startSession(prompt, `App request: ${name}`, screenshotFile);
+      updateRequest(id, { status: session.status, sessionId: session.sessionId, sessionUrl: session.url, prUrl: session.prUrl });
+    } catch (error) {
+      console.error(error);
+      updateRequest(id, { status: "failed", sessionId: null, sessionUrl: null, prUrl: null });
+    }
   }
   redirect("/requests");
 }

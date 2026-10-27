@@ -6,6 +6,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
+import { createServer } from "node:http";
 import { mkdtempSync, rmSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
@@ -16,6 +17,28 @@ const flagsUrl = "http://localhost:4100";
 const dataDir = mkdtempSync(join(tmpdir(), "powerapps-test-"));
 const appDb = join(dataDir, "app.db");
 const children: ChildProcess[] = [];
+const devinEnv = { DEVIN_API_URL: "http://localhost:4200", DEVIN_API_KEY: "cog_test", DEVIN_ORG_ID: "org-test" };
+const devinCalls: string[] = [];
+let devinSessionBody: { attachment_urls?: string[]; prompt?: string } = {};
+const fakeDevin = createServer((request, response) => {
+  let body = "";
+  request.on("data", (chunk) => (body += chunk));
+  request.on("end", () => {
+    devinCalls.push(`${request.method} ${request.url}`);
+    const reply = (status: number, value: unknown) => response.writeHead(status, { "content-type": "application/json" }).end(JSON.stringify(value));
+    if (request.headers.authorization !== "Bearer cog_test") return reply(401, { detail: "bad key" });
+    const session = { session_id: "devin-test", url: "https://app.devin.ai/sessions/test", status: "new", pull_requests: [] as { pr_url: string }[] };
+    if (request.method === "POST" && request.url === "/v3/organizations/org-test/attachments") return reply(200, { attachment_id: "a1", name: "shot.png", url: "https://example.com/shot.png" });
+    if (request.method === "POST" && request.url === "/v3/organizations/org-test/sessions") {
+      devinSessionBody = JSON.parse(body);
+      return reply(200, session);
+    }
+    if (request.method === "GET" && request.url === "/v3/organizations/org-test/sessions/devin-test") {
+      return reply(200, { ...session, status: "running", pull_requests: [{ pr_url: "https://github.com/spvyerra/DevinPowerApps/pull/99", pr_state: "open" }] });
+    }
+    reply(404, { detail: "not found" });
+  });
+});
 
 async function signIn(email: string): Promise<string> {
   const csrf = await fetch(`${webUrl}/api/auth/csrf`);
@@ -57,6 +80,7 @@ function json(method: string, body: unknown): RequestInit {
 }
 
 before(async () => {
+  await new Promise<void>((resolve) => fakeDevin.listen(4200, "127.0.0.1", resolve));
   start("node", ["services/feature-flags/server.ts"], { FEATURE_FLAGS_PORT: "4100", FEATURE_FLAGS_DB: join(dataDir, "flags.db") });
   start("npx", ["next", "dev", "--port", "3100"], {
     FEATURE_FLAGS_URL: flagsUrl,
@@ -65,11 +89,13 @@ before(async () => {
     AUTH_DEV_LOGIN: "true",
     ADMIN_EMAILS: "admin@example.com",
     OIDC_ISSUER: "",
+    ...devinEnv,
   });
   await Promise.all([waitFor(`${flagsUrl}/health`, 10_000), waitFor(`${webUrl}/signin`, 90_000)]);
 });
 
 after(() => {
+  fakeDevin.close();
   for (const child of children) if (child.pid) process.kill(-child.pid, "SIGTERM");
   rmSync(dataDir, { recursive: true, force: true });
 });
@@ -150,4 +176,33 @@ test("an app request stores a prompt naming the service doc and reference app", 
   assert.doesNotMatch(await (await get("/requests", await signIn("other@example.com"))).text(), /Feature Flags Admin/);
   assert.match(await (await get("/requests", await signIn("admin@example.com"))).text(), /Feature Flags Admin/);
   assert.equal((await get("/create", await signIn("other@example.com"))).status, 200);
+});
+
+test("with a Devin key, a request starts a Devin session and the requests page shows its pull request", async () => {
+  process.env.APP_DB = appDb;
+  Object.assign(process.env, devinEnv);
+  const { startSession } = await import("../src/lib/devin.ts");
+  const { createRequest, updateRequest } = await import("../src/lib/db.ts");
+  const screenshot = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "shot.png", { type: "image/png" });
+  const session = await startSession("Build the Session App.", "App request: Session App", screenshot);
+  assert.equal(session.sessionId, "devin-test");
+  assert.deepEqual(devinSessionBody.attachment_urls, ["https://example.com/shot.png"]);
+  assert.equal(devinSessionBody.prompt, "Build the Session App.");
+
+  const id = createRequest({
+    requesterEmail: "member@example.com",
+    name: "Session App",
+    slug: "session-app",
+    description: "Checks the Devin session flow.",
+    screenshotPath: null,
+    services: [],
+    docLinks: [],
+    prompt: "Build the Session App.",
+  });
+  updateRequest(id, { status: session.status, sessionId: session.sessionId, sessionUrl: session.url, prUrl: session.prUrl });
+  const page = await (await get("/requests", await signIn("member@example.com"))).text();
+  assert.match(page, /https:\/\/github\.com\/spvyerra\/DevinPowerApps\/pull\/99/);
+  assert.match(page, /https:\/\/app\.devin\.ai\/sessions\/test/);
+  assert.match(page, /Devin is working/);
+  assert.ok(devinCalls.includes("GET /v3/organizations/org-test/sessions/devin-test"));
 });

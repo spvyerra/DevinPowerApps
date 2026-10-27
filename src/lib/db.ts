@@ -8,6 +8,13 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 const dbPath = process.env.APP_DB ?? "data/app.db";
+const sessionColumns = {
+  status: "TEXT NOT NULL DEFAULT 'draft'",
+  devin_session_id: "TEXT",
+  devin_session_url: "TEXT",
+  pr_url: "TEXT",
+};
+
 let db: DatabaseSync | undefined;
 
 function open(): DatabaseSync {
@@ -32,6 +39,10 @@ function open(): DatabaseSync {
     created_at TEXT NOT NULL
   )`);
   db.exec("CREATE UNIQUE INDEX IF NOT EXISTS app_requests_slug ON app_requests (slug)");
+  const columns = new Set((db.prepare("PRAGMA table_info(app_requests)").all() as { name: string }[]).map((column) => column.name));
+  for (const [name, type] of Object.entries(sessionColumns)) {
+    if (!columns.has(name)) db.exec(`ALTER TABLE app_requests ADD COLUMN ${name} ${type}`);
+  }
   return db;
 }
 
@@ -67,7 +78,13 @@ export type AppRequest = {
   docLinks: string[];
   prompt: string;
   createdAt: string;
+  status: string;
+  sessionId: string | null;
+  sessionUrl: string | null;
+  prUrl: string | null;
 };
+
+export type RequestSession = Pick<AppRequest, "status" | "sessionId" | "sessionUrl" | "prUrl">;
 
 type AppRequestRow = {
   id: number;
@@ -80,6 +97,10 @@ type AppRequestRow = {
   doc_links: string;
   prompt: string;
   created_at: string;
+  status: string;
+  devin_session_id: string | null;
+  devin_session_url: string | null;
+  pr_url: string | null;
 };
 
 function toRequest(row: AppRequestRow): AppRequest {
@@ -94,11 +115,15 @@ function toRequest(row: AppRequestRow): AppRequest {
     docLinks: JSON.parse(row.doc_links),
     prompt: row.prompt,
     createdAt: row.created_at,
+    status: row.status,
+    sessionId: row.devin_session_id,
+    sessionUrl: row.devin_session_url,
+    prUrl: row.pr_url,
   };
 }
 
 /** Stores an app request and returns its id. */
-export function createRequest(request: Omit<AppRequest, "id" | "createdAt">): number {
+export function createRequest(request: Omit<AppRequest, "id" | "createdAt" | keyof RequestSession>): number {
   const result = open()
     .prepare(
       `INSERT INTO app_requests (requester_email, name, slug, description, screenshot_path, services, doc_links, prompt, created_at)
@@ -132,4 +157,11 @@ export function listRequests(requesterEmail: string | null): AppRequest[] {
 export function getRequest(id: number): AppRequest | undefined {
   const row = open().prepare("SELECT * FROM app_requests WHERE id = ?").get(id) as AppRequestRow | undefined;
   return row && toRequest(row);
+}
+
+/** Records a request's Devin session, status, and pull request. */
+export function updateRequest(id: number, session: RequestSession): void {
+  open()
+    .prepare("UPDATE app_requests SET status = ?, devin_session_id = ?, devin_session_url = ?, pr_url = ? WHERE id = ?")
+    .run(session.status, session.sessionId, session.sessionUrl, session.prUrl, id);
 }

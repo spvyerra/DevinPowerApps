@@ -17,9 +17,12 @@ It runs locally as a demo MVP.
    They open every app and grant or revoke access at `/admin/access`.
 
 6. App Creator at `/create`: name, UI description, optional PNG or JPEG screenshot up to 5 MB, services, and doc links.
-   Submitting stores a draft request and its Devin prompt.
+   Submitting stores the request and its Devin prompt.
+   When `DEVIN_API_KEY` (a Devin service-user key, `cog_...`) and `DEVIN_ORG_ID` are set, it also uploads the screenshot and starts a Devin session through the Devin v3 API.
+   Without them the request stays a draft.
 7. Requests at `/requests`: members see their own requests and admins see all.
-   Each shows the prompt with a copy button and the screenshot as a download, to paste into a new Devin session by hand.
+   Each shows its status, the Devin session and pull request links once they exist, the prompt with a copy button, and the screenshot as a download.
+   Drafts and requests whose session failed to start are pasted into a new Devin session by hand.
 
 ## Run it
 
@@ -41,7 +44,7 @@ CI runs all four on every PR (`.github/workflows/ci.yml`).
 ## File structure
 
 1. `src/app/`: Next.js App Router pages, the root layout, `/signin`, `/no-access`, `/admin/access`, `/create`, and `/requests`.
-2. `src/lib/devin.ts`: builds the Devin prompt for an app request.
+2. `src/lib/devin.ts`: builds the Devin prompt for an app request and starts and reads Devin sessions.
 3. `src/auth.ts`: Auth.js providers and the access rules (`isAdmin`, `canOpenApp`).
 4. `src/proxy.ts`: the route guard for every page except sign-in.
 5. `src/lib/db.ts`: the SQLite app database (`data/app.db`) holding app grants and app requests. Screenshots go in `data/uploads/`.
