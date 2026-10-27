@@ -5,10 +5,12 @@
  */
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { auth, canOpenApp } from "@/auth";
 import { listApps } from "@/lib/catalog";
 
 async function AppGrid() {
+  await connection();
   const email = (await auth())?.user?.email ?? "";
   return (
     <ul className="grid">

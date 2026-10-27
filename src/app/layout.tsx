@@ -6,6 +6,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { auth, isAdmin, signOut } from "@/auth";
 import "./globals.css";
 
@@ -20,6 +21,7 @@ async function signOutAction() {
 }
 
 async function UserBar() {
+  await connection();
   const user = (await auth())?.user;
   if (!user?.email) return null;
   return (
