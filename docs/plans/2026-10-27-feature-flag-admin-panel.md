@@ -45,7 +45,7 @@ Out: editing descriptions, bulk actions, search, audit history.
 
 ### Phase 2: Test and document
 
-- [x] Add a smoke test: the catalog links the app, the page lists a flag made through the service, and a member without a grant is redirected.
+- [x] Add a smoke test: the catalog links the app, the page lists a flag made through the service, its create, toggle, and delete forms change the service, a duplicate key shows the service error, and a member without a grant is redirected.
 - [x] Update `README.md` and `docs/notes.md`.
 - [x] `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` pass.
 - Acceptance: all four commands pass locally and in CI.
@@ -64,3 +64,4 @@ None.
 - 2026-10-27: plan written from the App Creator request by admin@example.com.
 - 2026-10-27: built and checked by hand in the browser in light and dark mode, then lint, typecheck, test, and build passed.
   The smoke test went into `tests/smoke.test.ts` instead of a new file, because `node --test` runs files in parallel and a second file would race the first for the dev server ports and the `.next` lock.
+- 2026-10-27: per Devin Review, the smoke test now submits the create, toggle, and delete forms the way a browser without JavaScript does, so the server action boundary is covered.

@@ -79,6 +79,18 @@ function json(method: string, body: unknown): RequestInit {
   return { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
 }
 
+async function submitForm(path: string, cookie: string, pick: (form: string) => boolean, fields: Record<string, string> = {}): Promise<string> {
+  const html = await (await get(path, cookie)).text();
+  const form = html.match(/<form[^>]*>[\s\S]*?<\/form>/g)?.find(pick);
+  assert.ok(form, `no matching form on ${path}`);
+  const body = new FormData();
+  for (const [, name, value = ""] of form.matchAll(/<input type="hidden" name="([^"]+)"(?: value="([^"]*)")?/g)) {
+    body.append(name, value.replaceAll("&quot;", '"').replaceAll("&#x27;", "'").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&"));
+  }
+  for (const [name, value] of Object.entries(fields)) body.append(name, value);
+  return (await fetch(`${webUrl}${path}`, { method: "POST", redirect: "manual", headers: { cookie, origin: webUrl }, body })).text();
+}
+
 before(async () => {
   await new Promise<void>((resolve) => fakeDevin.listen(4200, "127.0.0.1", resolve));
   start("node", ["services/feature-flags/server.ts"], { FEATURE_FLAGS_PORT: "4100", FEATURE_FLAGS_DB: join(dataDir, "flags.db") });
@@ -136,7 +148,7 @@ test("admin sees the catalog and opens Service Health with the service up", asyn
   assert.equal((await get("/admin/access", admin)).status, 200);
 });
 
-test("Feature Flag Admin Panel lists every flag with its toggle for admins and stays locked for members", async () => {
+test("Feature Flag Admin Panel lists, creates, toggles, and deletes flags through its forms and stays locked for members", async () => {
   await fetch(`${flagsUrl}/flags`, json("POST", { key: "panel-flag", description: "Shown in the panel" }));
   await fetch(`${flagsUrl}/flags/panel-flag`, json("PATCH", { enabled: true }));
   await fetch(`${flagsUrl}/flags`, json("POST", { key: "panel-off" }));
@@ -150,6 +162,17 @@ test("Feature Flag Admin Panel lists every flag with its toggle for admins and s
   assert.match(html, /role="switch" aria-checked="true" aria-label="panel-flag enabled"/);
   assert.match(html, /role="switch" aria-checked="false" aria-label="panel-off enabled"/);
   assert.match(html, /Create flag/);
+
+  const panelPath = "/apps/feature-flag-admin-panel";
+  const flag = async (key: string) => ((await (await fetch(`${flagsUrl}/flags`)).json()) as { key: string; enabled: boolean }[]).find((entry) => entry.key === key);
+  const createForm = (form: string) => form.includes('name="description"');
+  assert.match(await submitForm(panelPath, admin, createForm, { key: "panel-flag", description: "" }), /Flag panel-flag already exists/);
+  await submitForm(panelPath, admin, createForm, { key: "panel-new", description: "Made in the panel" });
+  assert.equal((await flag("panel-new"))?.enabled, false);
+  await submitForm(panelPath, admin, (form) => form.includes('aria-label="panel-new enabled"'));
+  assert.equal((await flag("panel-new"))?.enabled, true);
+  await submitForm(panelPath, admin, (form) => form.includes('value="panel-new"') && form.includes(">Delete<"));
+  assert.equal(await flag("panel-new"), undefined);
 
   const denied = await get("/apps/feature-flag-admin-panel", await signIn("member@example.com"));
   assert.equal(denied.status, 307);
