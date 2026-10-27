@@ -4,7 +4,7 @@
  * Owner: spvyerra.
  */
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -17,6 +17,7 @@ import { CreateForm, type CreateState } from "./form";
 const maxScreenshotBytes = 5 * 1024 * 1024;
 const slugPattern = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const uploadsDir = join("data", "uploads");
+const sqliteUniqueViolation = 2067;
 
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
@@ -65,7 +66,13 @@ async function createApp(_state: CreateState, formData: FormData): Promise<Creat
   }
 
   const prompt = buildPrompt({ name, slug, description, requesterEmail: email, services: chosen, docLinks, hasScreenshot: screenshotPath !== null });
-  createRequest({ requesterEmail: email, name, slug, description, screenshotPath, services: chosen, docLinks, prompt });
+  try {
+    createRequest({ requesterEmail: email, name, slug, description, screenshotPath, services: chosen, docLinks, prompt });
+  } catch (error) {
+    if (screenshotPath) await rm(screenshotPath, { force: true });
+    if ((error as { errcode?: number }).errcode === sqliteUniqueViolation) return fail(`An app named "${slug}" is already requested.`);
+    throw error;
+  }
   redirect("/requests");
 }
 

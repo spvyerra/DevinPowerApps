@@ -23,7 +23,7 @@ function open(): DatabaseSync {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     requester_email TEXT NOT NULL,
     name TEXT NOT NULL,
-    slug TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL,
     screenshot_path TEXT,
     services TEXT NOT NULL,

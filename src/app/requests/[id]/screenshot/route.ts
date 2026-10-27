@@ -15,6 +15,6 @@ export async function GET(_request: Request, { params }: RouteContext<"/requests
   }
   const type = request.screenshotPath.endsWith(".png") ? "image/png" : "image/jpeg";
   return new Response(await readFile(request.screenshotPath), {
-    headers: { "content-type": type, "content-disposition": `attachment; filename="${request.slug}${request.screenshotPath.slice(-4)}"` },
+    headers: { "content-type": type, "cache-control": "private, no-store", "content-disposition": `attachment; filename="${request.slug}${request.screenshotPath.slice(-4)}"` },
   });
 }

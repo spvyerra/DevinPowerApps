@@ -142,6 +142,7 @@ test("an app request stores a prompt naming the service doc and reference app", 
   assert.match(prompt, /docs\/services\/feature-flags\.md/);
   assert.match(prompt, /src\/app\/apps\/service-health\//);
   createRequest({ ...input, screenshotPath: null, prompt });
+  assert.throws(() => createRequest({ ...input, screenshotPath: null, prompt }), /constraint failed/);
 
   const mine = await (await get("/requests", await signIn("member@example.com"))).text();
   assert.match(mine, /Feature Flags Admin/);
