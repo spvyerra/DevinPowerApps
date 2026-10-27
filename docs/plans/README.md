@@ -3,6 +3,7 @@
 Every executed agentic plan for this repo lives here as one Markdown file.
 Plans are written before implementation so the user can review them.
 Unexecuted drafts and rejected versions are never committed.
+Owner: spvyerra.
 
 ## Naming
 
