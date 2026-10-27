@@ -23,7 +23,7 @@ function open(): DatabaseSync {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     requester_email TEXT NOT NULL,
     name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
+    slug TEXT NOT NULL,
     description TEXT NOT NULL,
     screenshot_path TEXT,
     services TEXT NOT NULL,
@@ -31,6 +31,7 @@ function open(): DatabaseSync {
     prompt TEXT NOT NULL,
     created_at TEXT NOT NULL
   )`);
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS app_requests_slug ON app_requests (slug)");
   return db;
 }
 
