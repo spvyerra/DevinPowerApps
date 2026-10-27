@@ -1,6 +1,7 @@
 /**
  * Root layout shared by the catalog, the creator, and every internal app.
  * It only sets document metadata and global styles so pages stay self-contained.
+ * Owner: spvyerra.
  */
 import type { Metadata } from "next";
 import "./globals.css";
