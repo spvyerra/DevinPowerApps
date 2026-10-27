@@ -63,5 +63,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   session: { strategy: "jwt" },
   pages: { signIn: "/signin" },
+  callbacks: {
+    jwt({ token }) {
+      if (token.email) token.email = token.email.trim().toLowerCase();
+      return token;
+    },
+  },
   trustHost: true,
 });

@@ -138,5 +138,10 @@ None.
 - 2026-10-26: Phase 0 done. `.env.example` and the combined dev command moved to Phase 1, since Phase 0 has no env vars and no service yet.
 - 2026-10-26: Phase 1 done. Added `src/lib/services.ts` as the one list of services, so Service Health and the Creator read base URLs and API docs from the same place.
 - 2026-10-26: per review, the service API doc moved to `docs/services/feature-flags.md` to keep docs under `./docs`, and the service binds to `127.0.0.1` because it has no auth.
-- 2026-10-26: Phase 2 done. Dropped the users table, because the admin role comes from `ADMIN_EMAILS` and grants are keyed by email, so nothing reads it. A member who opens a locked app is sent to `/no-access`, which names the owner. Auth.js is `next-auth@5.0.0-beta.32`, since v5 is the line that supports the App Router and Next.js 16.
-- 2026-10-27: Phase 3 done except the Devin API calls, which stay a TODO in `docs/notes.md` until a service-user key exists. The `app_requests` table has no status, session, or PR columns yet, because only drafts exist; they arrive with the API calls. The requests page offers the screenshot as a download, so it can be attached to the Devin session by hand.
+- 2026-10-26: Phase 2 done. Dropped the users table, because the admin role comes from `ADMIN_EMAILS` and grants are keyed by email, so nothing reads it.
+  A member who opens a locked app is sent to `/no-access`, which names the owner.
+  Session emails are lowercased in the Auth.js `jwt` callback, so OIDC addresses in any case match grants and `ADMIN_EMAILS`.
+  Auth.js is `next-auth@5.0.0-beta.32`, since v5 is the line that supports the App Router and Next.js 16.
+- 2026-10-27: Phase 3 done except the Devin API calls, which stay a TODO in `docs/notes.md` until a service-user key exists.
+  The `app_requests` table has no status, session, or PR columns yet, because only drafts exist; they arrive with the API calls.
+  The requests page offers the screenshot as a download, so it can be attached to the Devin session by hand.
