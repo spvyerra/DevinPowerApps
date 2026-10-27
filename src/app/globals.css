@@ -2,6 +2,7 @@
   --background: #ffffff;
   --foreground: #171717;
   --muted: #5f6368;
+  --border: #dadce0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -9,6 +10,7 @@
     --background: #0a0a0a;
     --foreground: #ededed;
     --muted: #a0a4a8;
+    --border: #3c4043;
   }
 
   html {
@@ -45,4 +47,69 @@ a {
 
 .page p {
   color: var(--muted);
+}
+
+.page h1 {
+  margin-top: 8px;
+}
+
+.grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--foreground);
+}
+
+.meta {
+  font-size: 0.85rem;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.status {
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.status.up {
+  color: #0b6b2b;
+  background: #d9f5e1;
+}
+
+.status.down {
+  color: #8a1c1c;
+  background: #fde2e2;
 }

@@ -1,0 +1,6 @@
+{
+  "name": "Service Health",
+  "description": "Shows whether each internal service is up.",
+  "owner": "spvyerra",
+  "services": ["feature-flags"]
+}

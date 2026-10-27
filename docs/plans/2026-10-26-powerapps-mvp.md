@@ -37,12 +37,13 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 8. `src/middleware.ts` (named `proxy.ts` on Next.js 16): one guard for `/apps/<slug>`, `/create`, `/requests`, and `/admin`.
 9. `src/lib/db.ts`: opens `data/app.db` and applies the schema on first use.
 10. `src/lib/catalog.ts`: reads all `app.json` files.
-11. `src/lib/devin.ts`: builds the session prompt and, when `DEVIN_API_KEY` is set, creates and reads sessions.
-12. `services/feature-flags/server.ts`: mock service on port 4001 using `node:http` and its own `data/flags.db`.
-13. `services/feature-flags/API.md`: the service API doc, used as the "wiki" Devin reads.
-14. `tests/smoke.test.ts`: smoke tests run by root `npm test` with `node:test`.
-15. `.github/workflows/ci.yml`: lint, typecheck, test, build on PRs.
-16. `.env.example`, `.gitignore`, `docs/notes.md`.
+11. `src/lib/services.ts`: the list of internal services with name, base URL, and API doc path, shared by Service Health and the App Creator.
+12. `src/lib/devin.ts`: builds the session prompt and, when `DEVIN_API_KEY` is set, creates and reads sessions.
+13. `services/feature-flags/server.ts`: mock service on port 4001 using `node:http` and its own `data/flags.db`.
+14. `services/feature-flags/API.md`: the service API doc, used as the "wiki" Devin reads.
+15. `tests/smoke.test.ts`: smoke tests run by root `npm test` with `node:test`.
+16. `.github/workflows/ci.yml`: lint, typecheck, test, build on PRs.
+17. `.env.example`, `.gitignore`, `docs/notes.md`.
 
 ### Data model
 
@@ -68,7 +69,7 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### App Creator flow
 
-1. The user fills in app name, description of the UI, an optional screenshot (PNG or JPEG, up to 5 MB), the services to use (picked from `services/*/API.md`), and optional doc links.
+1. The user fills in app name, description of the UI, an optional screenshot (PNG or JPEG, up to 5 MB), the services to use (picked from `src/lib/services.ts`), and optional doc links.
 2. A server action validates the input, saves the screenshot under `data/uploads/`, and inserts an `app_requests` row.
 3. `src/lib/devin.ts` builds the prompt: the repo, the request, the paths of the chosen API docs, the instruction to copy the `service-health` app pattern, add an `app.json`, update the README, and open a PR.
 4. Without `DEVIN_API_KEY`, the row stays `draft` and the requests page shows the prompt with a copy button, so the demo works by pasting into the Devin webapp.
@@ -87,10 +88,10 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### Phase 1: Catalog, mock service, reference app
 
-- [ ] Build the feature-flag service and `API.md`.
-- [ ] Add `.env.example` with placeholder values, and make `npm run dev` start Next.js and the feature-flag service together.
-- [ ] Build `src/lib/catalog.ts` and the catalog page with a card per app.
-- [ ] Build the Service Health app: one row per service with its name, base URL, and up or down state.
+- [x] Build the feature-flag service and `API.md`.
+- [x] Add `.env.example` with placeholder values, and make `npm run dev` start Next.js and the feature-flag service together.
+- [x] Build `src/lib/catalog.ts` and the catalog page with a card per app.
+- [x] Build the Service Health app: one row per service with its name, base URL, and up or down state.
 - Acceptance: the catalog shows the Service Health card; Service Health shows the feature-flag service as up while it runs and down after it stops; flags created through `curl` persist across a service restart; the smoke test covers service CRUD and catalog loading.
 
 ### Phase 2: SSO and access control
@@ -135,3 +136,4 @@ None.
 - 2026-10-26: per user, the Feature Flags admin panel is the Creator demo and Service Health is the reference app.
 - 2026-10-26: plan approved.
 - 2026-10-26: Phase 0 done. `.env.example` and the combined dev command moved to Phase 1, since Phase 0 has no env vars and no service yet.
+- 2026-10-26: Phase 1 done. Added `src/lib/services.ts` as the one list of services, so Service Health and the Creator read base URLs and API docs from the same place.
