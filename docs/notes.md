@@ -23,6 +23,12 @@ If that becomes a problem, switch to `concurrently`.
 The catalog reads manifests at build time, so `next start` only shows apps that existed at the last build.
 This is fine because new apps arrive through merged PRs, which trigger a rebuild.
 
+Auth.js uses `trustHost: true`, because the MVP runs on localhost with no proxy setting the host.
+Set it to false or drop it if the app ever sits behind an untrusted host header.
+
+Access checks run in `src/proxy.ts`, which runs on the Node.js runtime in Next.js 16, so it can read SQLite directly.
+Server actions re-check the admin role themselves, because the proxy does not cover them.
+
 ## Rejected approaches
 
 Google fonts through `next/font/google` were dropped from the scaffold, because they need network access at build time and the MVP runs locally.

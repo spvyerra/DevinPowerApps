@@ -113,3 +113,108 @@ a {
   color: #8a1c1c;
   background: #fde2e2;
 }
+
+.narrow {
+  max-width: 420px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar nav,
+.user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+input {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 14px;
+  border: 1px solid var(--foreground);
+  border-radius: 6px;
+  background: var(--foreground);
+  color: var(--background);
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.inline-form input {
+  flex: 1;
+}
+
+.panel {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.panel h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.card.locked {
+  border-style: dashed;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
