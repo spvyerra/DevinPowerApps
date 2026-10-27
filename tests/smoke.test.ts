@@ -101,7 +101,7 @@ test("signed-out visitors are sent to sign-in", async () => {
 });
 
 test("admin sees the catalog and opens Service Health with the service up", async () => {
-  const admin = await signIn("admin@example.com");
+  const admin = await signIn("Admin@Example.com");
   const catalog = await (await get("/", admin)).text();
   assert.match(catalog, /href="\/apps\/service-health"/);
   const health = await get("/apps/service-health", admin);
