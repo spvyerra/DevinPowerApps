@@ -59,7 +59,7 @@ async function RequestList() {
             {request.requesterEmail} on {new Date(request.createdAt).toLocaleString("en-US", { timeZone: "UTC" })} UTC. Status: {statusLabels[request.status] ?? request.status}.
           </p>
           {request.status === "failed" && (
-            <p>
+            <p className="warning" role="status">
               The Devin API call failed, so a session may or may not exist. Look for a session titled &quot;App request: {request.name}&quot; in Devin before
               starting a new one.
             </p>
