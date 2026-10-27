@@ -34,7 +34,7 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 5. `src/app/requests/page.tsx`: list of app requests with status, prompt, session link, and PR link.
 6. `src/app/admin/access/page.tsx`: admin panel to grant or revoke app access by email.
 7. `src/auth.ts` and `src/app/api/auth/[...nextauth]/route.ts`: Auth.js config with OIDC and dev login providers.
-8. `src/middleware.ts` (named `proxy.ts` on Next.js 16): one guard for `/apps/<slug>`, `/create`, `/requests`, and `/admin`.
+8. `src/proxy.ts`: one guard for `/apps/<slug>`, `/create`, `/requests`, and `/admin`.
 9. `src/lib/db.ts`: opens `data/app.db` and applies the schema on first use.
 10. `src/lib/catalog.ts`: reads all `app.json` files.
 11. `src/lib/services.ts`: the list of internal services with name, base URL, and API doc path, shared by Service Health and the App Creator.
@@ -47,7 +47,7 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### Data model
 
-1. `users(email primary key, name, role)` where role is `admin` or `member`. Emails in `ADMIN_EMAILS` become admins on first sign-in.
+1. No users table. Admins are the emails in `ADMIN_EMAILS`, checked on every request, so a config change applies at once.
 2. `app_access(app_slug, email, primary key(app_slug, email))`.
 3. `app_requests(id, requester_email, name, slug, description, screenshot_path, services, doc_links, prompt, status, devin_session_id, devin_session_url, pr_url, created_at)` where status is `draft`, `sent`, `pr_open`, `merged`, or `failed`.
 
@@ -96,10 +96,10 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### Phase 2: SSO and access control
 
-- [ ] Add Auth.js with a generic OIDC provider, enabled when `OIDC_ISSUER` is set.
-- [ ] Add a dev login provider, enabled when `AUTH_DEV_LOGIN=true`, that signs in with any email.
-- [ ] Add the users and app_access tables and the route guard.
-- [ ] Build the access panel: pick an app, list granted emails, add or remove an email.
+- [x] Add Auth.js with a generic OIDC provider, enabled when `OIDC_ISSUER` is set.
+- [x] Add a dev login provider, enabled when `AUTH_DEV_LOGIN=true`, that signs in with any email.
+- [x] Add the app_access table and the route guard.
+- [x] Build the access panel: pick an app, list granted emails, add or remove an email.
 - Acceptance: a signed-out user is sent to sign-in; a member without a grant gets a locked page at `/apps/service-health`; after an admin grants them access, the app opens; the smoke test covers the guard decision function.
 
 ### Phase 3: App Creator
@@ -138,3 +138,7 @@ None.
 - 2026-10-26: Phase 0 done. `.env.example` and the combined dev command moved to Phase 1, since Phase 0 has no env vars and no service yet.
 - 2026-10-26: Phase 1 done. Added `src/lib/services.ts` as the one list of services, so Service Health and the Creator read base URLs and API docs from the same place.
 - 2026-10-26: per review, the service API doc moved to `docs/services/feature-flags.md` to keep docs under `./docs`, and the service binds to `127.0.0.1` because it has no auth.
+- 2026-10-26: Phase 2 done. Dropped the users table, because the admin role comes from `ADMIN_EMAILS` and grants are keyed by email, so nothing reads it.
+  A member who opens a locked app is sent to `/no-access`, which names the owner.
+  Session emails are lowercased in the Auth.js `jwt` callback, so OIDC addresses in any case match grants and `ADMIN_EMAILS`.
+  Auth.js is `next-auth@5.0.0-beta.32`, since v5 is the line that supports the App Router and Next.js 16.
