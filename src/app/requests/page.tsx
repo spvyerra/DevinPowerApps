@@ -13,7 +13,7 @@ import { CopyButton } from "./copy-button";
 
 const statusLabels: Record<string, string> = {
   draft: "draft",
-  failed: "could not start a Devin session",
+  failed: "could not confirm a Devin session",
   new: "Devin is starting",
   claimed: "Devin is starting",
   running: "Devin is working",
@@ -26,7 +26,7 @@ const statusLabels: Record<string, string> = {
 const doneStatuses = new Set(["exit", "error"]);
 
 async function refresh(request: AppRequest): Promise<AppRequest> {
-  if (!request.sessionId || doneStatuses.has(request.status) || !devinEnabled()) return request;
+  if (!request.sessionId || (doneStatuses.has(request.status) && request.prUrl) || !devinEnabled()) return request;
   try {
     const session = await getSession(request.sessionId);
     const fields = { status: session.status, sessionId: session.sessionId, sessionUrl: session.url, prUrl: session.prUrl };
@@ -58,6 +58,12 @@ async function RequestList() {
           <p className="meta">
             {request.requesterEmail} on {new Date(request.createdAt).toLocaleString("en-US", { timeZone: "UTC" })} UTC. Status: {statusLabels[request.status] ?? request.status}.
           </p>
+          {request.status === "failed" && (
+            <p>
+              The Devin API call failed, so a session may or may not exist. Look for a session titled &quot;App request: {request.name}&quot; in Devin before
+              starting a new one.
+            </p>
+          )}
           {!request.sessionId && <p>Start a Devin session for this repo, paste the prompt, and attach the screenshot if there is one.</p>}
           <div className="actions">
             {request.sessionUrl && <a href={request.sessionUrl} target="_blank" rel="noreferrer">Open Devin session</a>}

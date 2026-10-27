@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listApps } from "@/lib/catalog";
 import { services } from "@/lib/services";
-import { buildPrompt, devinEnabled, startSession } from "@/lib/devin";
+import { buildPrompt, devinEnabled, startSession, type DevinSession } from "@/lib/devin";
 import { createRequest, updateRequest } from "@/lib/db";
 import { CreateForm, type CreateState } from "./form";
 
@@ -77,13 +77,18 @@ async function createApp(_state: CreateState, formData: FormData): Promise<Creat
     throw error;
   }
   if (devinEnabled()) {
+    let session: DevinSession | null = null;
     try {
-      const session = await startSession(prompt, `App request: ${name}`, screenshotFile);
-      updateRequest(id, { status: session.status, sessionId: session.sessionId, sessionUrl: session.url, prUrl: session.prUrl });
+      session = await startSession(prompt, `App request: ${name}`, screenshotFile);
     } catch (error) {
       console.error(error);
-      updateRequest(id, { status: "failed", sessionId: null, sessionUrl: null, prUrl: null });
     }
+    updateRequest(
+      id,
+      session
+        ? { status: session.status, sessionId: session.sessionId, sessionUrl: session.url, prUrl: session.prUrl }
+        : { status: "failed", sessionId: null, sessionUrl: null, prUrl: null },
+    );
   }
   redirect("/requests");
 }
