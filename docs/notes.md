@@ -32,6 +32,12 @@ Server actions re-check the admin role themselves, because the proxy does not co
 Under `cacheComponents`, call `await connection()` before `auth()` in a server component.
 Auth.js calls `crypto.getRandomValues()` before it reads cookies, so without it the dev server logs a blocking-prerender error and the page renders empty.
 
+The App Creator form returns the submitted values with each validation error and uses them as `defaultValue`.
+React 19 resets a form after its action runs, so without this a failed submit clears every field.
+The file input cannot be refilled, so the user picks the screenshot again.
+
+Server actions accept bodies up to 6 MB (`experimental.serverActions.bodySizeLimit`), so a 5 MB screenshot fits with multipart overhead.
+
 ## Rejected approaches
 
 Google fonts through `next/font/google` were dropped from the scaffold, because they need network access at build time and the MVP runs locally.
@@ -40,6 +46,9 @@ Google fonts through `next/font/google` were dropped from the scaffold, because 
 
 Cloud hosting and a deploy workflow wait until a hosting target is chosen.
 Devin API calls wait on a Devin service-user API key.
+TODO when the key exists: in the Creator's server action, upload the screenshot as a Devin attachment, create a session with the prompt from `buildPrompt`, and store the session id and URL on the request.
+Then add status, session, and PR columns to `app_requests`, and refresh them on the requests page.
+Check the endpoint shapes against docs.devin.ai first.
 
 ## Target design
 

@@ -104,10 +104,10 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### Phase 3: App Creator
 
-- [ ] Build the create form and server action with input validation.
-- [ ] Build the prompt builder and the draft flow.
-- [ ] Build the requests page with copy-prompt, session link, and PR link.
-- [ ] Add the Devin API calls behind `DEVIN_API_KEY` (TODO until a service-user key exists).
+- [x] Build the create form and server action with input validation.
+- [x] Build the prompt builder and the draft flow.
+- [x] Build the requests page with copy-prompt and screenshot download. Session and PR links wait on the Devin API calls.
+- [ ] TODO: add the Devin API calls behind `DEVIN_API_KEY` once a service-user key exists.
 - Acceptance: submitting the form creates a `draft` request whose prompt names the chosen service doc and the reference app; pasting that prompt into Devin produces a PR that adds a working app folder; the smoke test covers prompt building and request storage.
 
 Each phase ends with a README update and its own PR, based on the previous phase branch if that one is not merged yet.
@@ -139,3 +139,4 @@ None.
 - 2026-10-26: Phase 1 done. Added `src/lib/services.ts` as the one list of services, so Service Health and the Creator read base URLs and API docs from the same place.
 - 2026-10-26: per review, the service API doc moved to `docs/services/feature-flags.md` to keep docs under `./docs`, and the service binds to `127.0.0.1` because it has no auth.
 - 2026-10-26: Phase 2 done. Dropped the users table, because the admin role comes from `ADMIN_EMAILS` and grants are keyed by email, so nothing reads it. A member who opens a locked app is sent to `/no-access`, which names the owner. Auth.js is `next-auth@5.0.0-beta.32`, since v5 is the line that supports the App Router and Next.js 16.
+- 2026-10-27: Phase 3 done except the Devin API calls, which stay a TODO in `docs/notes.md` until a service-user key exists. The `app_requests` table has no status, session, or PR columns yet, because only drafts exist; they arrive with the API calls. The requests page offers the screenshot as a download, so it can be attached to the Devin session by hand.

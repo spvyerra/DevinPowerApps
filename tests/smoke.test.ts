@@ -123,3 +123,30 @@ test("members open only granted apps and never the admin panel", async () => {
   db.close();
   assert.equal((await get("/apps/service-health", member)).status, 200);
 });
+
+test("an app request stores a prompt naming the service doc and reference app", async () => {
+  process.env.APP_DB = appDb;
+  const { buildPrompt } = await import("../src/lib/devin.ts");
+  const { createRequest } = await import("../src/lib/db.ts");
+  const input = {
+    name: "Feature Flags Admin",
+    slug: "feature-flags-admin",
+    description: "List, create, toggle, and delete true/false flags.",
+    requesterEmail: "member@example.com",
+    services: ["feature-flags"],
+    docLinks: [],
+    hasScreenshot: false,
+  };
+  const prompt = buildPrompt(input);
+  assert.match(prompt, /src\/app\/apps\/feature-flags-admin\//);
+  assert.match(prompt, /docs\/services\/feature-flags\.md/);
+  assert.match(prompt, /src\/app\/apps\/service-health\//);
+  createRequest({ ...input, screenshotPath: null, prompt });
+
+  const mine = await (await get("/requests", await signIn("member@example.com"))).text();
+  assert.match(mine, /Feature Flags Admin/);
+  assert.match(mine, /docs\/services\/feature-flags\.md/);
+  assert.doesNotMatch(await (await get("/requests", await signIn("other@example.com"))).text(), /Feature Flags Admin/);
+  assert.match(await (await get("/requests", await signIn("admin@example.com"))).text(), /Feature Flags Admin/);
+  assert.equal((await get("/create", await signIn("other@example.com"))).status, 200);
+});
