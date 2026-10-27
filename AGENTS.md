@@ -6,6 +6,7 @@ Project-specific rules for agents working in this repository.
 
 - Never use the em dash "—". Use plain dash "-" instead.
 - When writing commit messages, NEVER auto-add your agent name as co-author.
+- This repo runs Next.js 16, whose APIs and conventions differ from older versions. Read the relevant guide in `node_modules/next/dist/docs/` before writing Next.js code.
 - Never manually modify CHANGELOG.md files or any files that are marked as auto-generated.
 - When writing or substantially editing long Markdown files, put each full sentence on its own line. Preserve normal Markdown structure, but avoid wrapping multiple sentences onto one physical line.
 - When making technical decisions, do not give much weight to development cost. Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
@@ -15,10 +16,11 @@ Project-specific rules for agents working in this repository.
 
 ## Agentic Plans
 
-- Every agentic plan produced while working on this project MUST be saved as a Markdown file in `/docs/plans/`.
-- Plans must be written to `/docs/plans/` before implementation begins, so the user can review them.
+- Every agentic plan that is executed on this project MUST be saved as a Markdown file in `/docs/plans/`.
+- Write plans to `/docs/plans/` before implementation begins, so the user can review them.
+- Never commit unexecuted plans. Drafts and rejected versions stay out of git; commit a plan only with the work that executes it.
 - Name plan files `YYYY-MM-DD-<short-slug>.md` (e.g., `2026-10-14-rag-pipeline-redesign.md`).
-- Append a suffix like `-v2` when iterating on a plan rather than overwriting the original, so planning history is preserved.
+- When a committed, executed plan is followed by a new direction, add a new file with a suffix like `-v2` rather than overwriting the original.
 - Keep the plan file updated as work progresses: mark steps done and reflect any scope changes, so the file remains an accurate record.
 - See `/docs/plans/README.md` for the expected contents of a plan file.
 
