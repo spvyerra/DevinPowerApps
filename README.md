@@ -8,19 +8,21 @@ It runs locally as a demo MVP.
 1. App Catalog at `/`: one card per internal app, built from each app's `app.json` manifest.
 2. Service Health at `/apps/service-health`: shows each internal service as up or down.
    It is the reference pattern Devin copies for new apps.
-3. A mock Feature Flags service on port 4001 that stores true/false flags in SQLite.
+3. Feature Flag Admin Panel at `/apps/feature-flag-admin-panel`: lists every flag with an on/off switch, and creates and deletes flags.
+   Owner: admin@example.com.
+4. A mock Feature Flags service on port 4001 that stores true/false flags in SQLite.
    Its API is documented in `docs/services/feature-flags.md`.
 
-4. Sign-in at `/signin` with a dev login (`AUTH_DEV_LOGIN=true`), or with any OIDC provider once `OIDC_ISSUER`, `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET` are set.
-5. Access control: members see every app but open only the apps an admin granted them.
+5. Sign-in at `/signin` with a dev login (`AUTH_DEV_LOGIN=true`), or with any OIDC provider once `OIDC_ISSUER`, `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET` are set.
+6. Access control: members see every app but open only the apps an admin granted them.
    Admins are the emails in `ADMIN_EMAILS`.
    They open every app and grant or revoke access at `/admin/access`.
 
-6. App Creator at `/create`: name, UI description, optional PNG or JPEG screenshot up to 5 MB, services, and doc links.
+7. App Creator at `/create`: name, UI description, optional PNG or JPEG screenshot up to 5 MB, services, and doc links.
    Submitting stores the request and its Devin prompt.
    When `DEVIN_API_KEY` (a Devin service-user key, `cog_...`) and `DEVIN_ORG_ID` are set, it also uploads the screenshot and starts a Devin session through the Devin v3 API.
    Without them the request stays a draft.
-7. Requests at `/requests`: members see their own requests and admins see all.
+8. Requests at `/requests`: members see their own requests and admins see all.
    Each shows its status, the Devin session and pull request links once they exist, the prompt with a copy button, and the screenshot as a download.
    Drafts and requests whose session failed to start are pasted into a new Devin session by hand.
 
@@ -36,7 +38,7 @@ It runs locally as a demo MVP.
 
 1. `npm run lint`
 2. `npm run typecheck`
-3. `npm test` boots the Feature Flags service and the dev server, then checks flag CRUD, the sign-in redirect, admin and member access, and Service Health.
+3. `npm test` boots the Feature Flags service and the dev server, then checks flag CRUD, the sign-in redirect, admin and member access, Service Health, and the Feature Flag Admin Panel.
 4. `npm run build`
 
 CI runs all four on every PR (`.github/workflows/ci.yml`).
