@@ -1,6 +1,39 @@
 # DevinPowerApps
 
-## Basic Details
+An internal App Catalog where users request new apps and Devin builds them as PRs to this repo.
+It runs locally as a demo MVP.
+
+## What runs now
+
+A Next.js 16 app with a placeholder home page.
+The catalog, mock feature-flag service, sign-in, access control, and App Creator are planned in `docs/plans/2026-10-26-powerapps-mvp.md`.
+
+## Run it
+
+1. Install Node 24 or newer.
+2. `npm ci`
+3. `npm run dev` and open http://localhost:3000.
+
+## Checks
+
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm test` boots the dev server and checks the home page renders.
+4. `npm run build`
+
+CI runs all four on every PR (`.github/workflows/ci.yml`).
+
+## File structure
+
+1. `src/app/`: Next.js App Router pages and the root layout.
+2. `tests/`: smoke tests run with `node:test`.
+3. `docs/plans/`: executed agentic plans.
+4. `docs/notes.md`: gotchas, rejected approaches, and deferred work.
+5. `AGENTS.md`: rules for agents working in this repo.
+
+## Target design
+
+### Basic Details
 
 1. Webpage that you can create new Apps from
     1. Internal App Catalog that showcases all of the available apps to use
@@ -15,7 +48,7 @@
         2. Use your existing SSO solution
         3. Enable cron schedule for running Devin Security for fixes
 
-## Architecture
+### Architecture
 
 High Level
 
