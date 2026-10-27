@@ -157,6 +157,7 @@ a {
 
 input {
   font: inherit;
+  font-weight: 400;
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
