@@ -28,6 +28,8 @@ async function UserBar() {
     <header className="topbar">
       <nav>
         <Link href="/">App Catalog</Link>
+        <Link href="/create">Create app</Link>
+        <Link href="/requests">Requests</Link>
         {isAdmin(user.email) && <Link href="/admin/access">Access</Link>}
       </nav>
       <div className="user">

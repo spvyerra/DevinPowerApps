@@ -73,7 +73,8 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 2. A server action validates the input, saves the screenshot under `data/uploads/`, and inserts an `app_requests` row.
 3. `src/lib/devin.ts` builds the prompt: the repo, the request, the paths of the chosen API docs, the instruction to copy the `service-health` app pattern, add an `app.json`, update the README, and open a PR.
 4. Without `DEVIN_API_KEY`, the row stays `draft` and the requests page shows the prompt with a copy button, so the demo works by pasting into the Devin webapp.
-5. With `DEVIN_API_KEY`, the server uploads the screenshot as an attachment, creates a session, and stores its id and URL with status `sent`. The requests page refreshes session status and PR URL on load. Endpoint shapes get checked against docs.devin.ai when the key exists.
+5. With `DEVIN_API_KEY`, the server uploads the screenshot as an attachment, creates a session, and stores its id, URL, and Devin status.
+   The requests page refreshes session status and PR URL on load.
 
 ## Steps
 
@@ -104,10 +105,10 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### Phase 3: App Creator
 
-- [ ] Build the create form and server action with input validation.
-- [ ] Build the prompt builder and the draft flow.
-- [ ] Build the requests page with copy-prompt, session link, and PR link.
-- [ ] Add the Devin API calls behind `DEVIN_API_KEY` (TODO until a service-user key exists).
+- [x] Build the create form and server action with input validation.
+- [x] Build the prompt builder and the draft flow.
+- [x] Build the requests page with copy-prompt, screenshot download, session link, and PR link.
+- [x] Add the Devin API calls behind `DEVIN_API_KEY` and `DEVIN_ORG_ID`.
 - Acceptance: submitting the form creates a `draft` request whose prompt names the chosen service doc and the reference app; pasting that prompt into Devin produces a PR that adds a working app folder; the smoke test covers prompt building and request storage.
 
 Each phase ends with a README update and its own PR, based on the previous phase branch if that one is not merged yet.
@@ -142,3 +143,9 @@ None.
   A member who opens a locked app is sent to `/no-access`, which names the owner.
   Session emails are lowercased in the Auth.js `jwt` callback, so OIDC addresses in any case match grants and `ADMIN_EMAILS`.
   Auth.js is `next-auth@5.0.0-beta.32`, since v5 is the line that supports the App Router and Next.js 16.
+- 2026-10-27: Phase 3 done except the Devin API calls, which stay a TODO in `docs/notes.md` until a service-user key exists.
+  The `app_requests` table has no status, session, or PR columns yet, because only drafts exist; they arrive with the API calls.
+  The requests page offers the screenshot as a download, so it can be attached to the Devin session by hand.
+- 2026-10-27: per review, the Devin API calls were built now behind `DEVIN_API_KEY`, which the user fills in later.
+  They use the v3 API, so `DEVIN_ORG_ID` is needed too.
+  `app_requests` gained `status`, `devin_session_id`, `devin_session_url`, and `pr_url`, added with `ALTER TABLE` when missing.

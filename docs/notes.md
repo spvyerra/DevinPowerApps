@@ -32,6 +32,21 @@ Server actions re-check the admin role themselves, because the proxy does not co
 Under `cacheComponents`, call `await connection()` before `auth()` in a server component.
 Auth.js calls `crypto.getRandomValues()` before it reads cookies, so without it the dev server logs a blocking-prerender error and the page renders empty.
 
+The App Creator form returns the submitted values with each validation error and uses them as `defaultValue`.
+React 19 resets a form after its action runs, so without this a failed submit clears every field.
+The file input cannot be refilled, so the user picks the screenshot again.
+
+Server actions accept bodies up to 6 MB (`experimental.serverActions.bodySizeLimit`), so a 5 MB screenshot fits with multipart overhead.
+
+The Devin integration uses the v3 API (`/v3/organizations/{org_id}/...`), because v1 and v2 keys are legacy and service-user keys (`cog_...`) only work on v3.
+That is why `DEVIN_ORG_ID` is needed next to `DEVIN_API_KEY`.
+`DEVIN_API_URL` defaults to `https://api.devin.ai` and exists so the smoke test can point at a fake Devin server.
+The requests page refreshes every session that has not finished on each view, one API call per session.
+That is fine for a demo; with many requests, move the refresh to a background poll or a webhook.
+If the session call fails, the request is kept with status `failed`, and the page asks the user to look for a session titled "App request: <name>" before pasting the prompt by hand, because Devin may have created the session before the response was lost.
+Automatic reconciliation would need a v3 way to find sessions by tag, which the v3 docs do not list.
+Finished sessions without a PR URL keep being refreshed, so a PR that appears after the session ends still shows up.
+
 ## Rejected approaches
 
 Google fonts through `next/font/google` were dropped from the scaffold, because they need network access at build time and the MVP runs locally.
@@ -39,7 +54,6 @@ Google fonts through `next/font/google` were dropped from the scaffold, because 
 ## Deferred
 
 Cloud hosting and a deploy workflow wait until a hosting target is chosen.
-Devin API calls wait on a Devin service-user API key.
 
 ## Target design
 

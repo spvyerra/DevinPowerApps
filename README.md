@@ -16,7 +16,13 @@ It runs locally as a demo MVP.
    Admins are the emails in `ADMIN_EMAILS`.
    They open every app and grant or revoke access at `/admin/access`.
 
-The App Creator is planned in `docs/plans/2026-10-26-powerapps-mvp.md`.
+6. App Creator at `/create`: name, UI description, optional PNG or JPEG screenshot up to 5 MB, services, and doc links.
+   Submitting stores the request and its Devin prompt.
+   When `DEVIN_API_KEY` (a Devin service-user key, `cog_...`) and `DEVIN_ORG_ID` are set, it also uploads the screenshot and starts a Devin session through the Devin v3 API.
+   Without them the request stays a draft.
+7. Requests at `/requests`: members see their own requests and admins see all.
+   Each shows its status, the Devin session and pull request links once they exist, the prompt with a copy button, and the screenshot as a download.
+   Drafts and requests whose session failed to start are pasted into a new Devin session by hand.
 
 ## Run it
 
@@ -37,19 +43,20 @@ CI runs all four on every PR (`.github/workflows/ci.yml`).
 
 ## File structure
 
-1. `src/app/`: Next.js App Router pages, the root layout, `/signin`, `/no-access`, and `/admin/access`.
-2. `src/auth.ts`: Auth.js providers and the access rules (`isAdmin`, `canOpenApp`).
-3. `src/proxy.ts`: the route guard for every page except sign-in.
-4. `src/lib/db.ts`: the SQLite app database (`data/app.db`) holding app grants.
-5. `src/app/apps/<slug>/`: one folder per internal app, with `page.tsx` and an `app.json` manifest (name, description, owner, services).
-6. `src/lib/catalog.ts`: reads the app manifests.
-7. `src/lib/services.ts`: the list of internal services with base URL and API doc path.
-8. `services/feature-flags/server.ts`: the mock Feature Flags service.
-9. `tests/`: smoke tests run with `node:test`.
-10. `docs/plans/`: executed agentic plans.
-11. `docs/services/`: API docs for internal services, which Devin reads when building apps.
-12. `docs/notes.md`: gotchas, rejected approaches, deferred work, and the target design.
-13. `AGENTS.md`: rules for agents working in this repo.
+1. `src/app/`: Next.js App Router pages, the root layout, `/signin`, `/no-access`, `/admin/access`, `/create`, and `/requests`.
+2. `src/lib/devin.ts`: builds the Devin prompt for an app request and starts and reads Devin sessions.
+3. `src/auth.ts`: Auth.js providers and the access rules (`isAdmin`, `canOpenApp`).
+4. `src/proxy.ts`: the route guard for every page except sign-in.
+5. `src/lib/db.ts`: the SQLite app database (`data/app.db`) holding app grants and app requests. Screenshots go in `data/uploads/`.
+6. `src/app/apps/<slug>/`: one folder per internal app, with `page.tsx` and an `app.json` manifest (name, description, owner, services).
+7. `src/lib/catalog.ts`: reads the app manifests.
+8. `src/lib/services.ts`: the list of internal services with base URL and API doc path.
+9. `services/feature-flags/server.ts`: the mock Feature Flags service.
+10. `tests/`: smoke tests run with `node:test`.
+11. `docs/plans/`: executed agentic plans.
+12. `docs/services/`: API docs for internal services, which Devin reads when building apps.
+13. `docs/notes.md`: gotchas, rejected approaches, deferred work, and the target design.
+14. `AGENTS.md`: rules for agents working in this repo.
 
 ## Ownership
 
