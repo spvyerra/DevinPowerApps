@@ -28,6 +28,7 @@ Set it to false or drop it if the app ever sits behind an untrusted host header.
 
 Access checks run in `src/proxy.ts`, which runs on the Node.js runtime in Next.js 16, so it can read SQLite directly.
 Server actions re-check the admin role themselves, because the proxy does not cover them.
+App server actions, such as those in the Feature Flag Admin Panel, check `canOpenApp` for the same reason.
 
 Under `cacheComponents`, call `await connection()` before `auth()` in a server component.
 Auth.js calls `crypto.getRandomValues()` before it reads cookies, so without it the dev server logs a blocking-prerender error and the page renders empty.
@@ -54,6 +55,9 @@ Google fonts through `next/font/google` were dropped from the scaffold, because 
 ## Deferred
 
 Cloud hosting and a deploy workflow wait until a hosting target is chosen.
+
+The Feature Flag Admin Panel updates a flag only by turning it on or off, because `PATCH /flags/:key` accepts only `enabled`.
+Editing a description needs the service to accept `description` on `PATCH`, then a description field on each row.
 
 ## Target design
 
