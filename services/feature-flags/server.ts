@@ -1,6 +1,7 @@
 /**
  * Mock feature-flag service that stands in for an existing internal business service.
  * It is a single `node:http` file over `node:sqlite` so the demo needs no extra dependencies.
+ * Owner: spvyerra. It runs as its own process, so it cannot live inside the Next.js app.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { DatabaseSync } from "node:sqlite";
@@ -8,6 +9,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 const port = Number(process.env.FEATURE_FLAGS_PORT ?? 4001);
+const host = process.env.FEATURE_FLAGS_HOST ?? "127.0.0.1";
 const dbPath = process.env.FEATURE_FLAGS_DB ?? "data/flags.db";
 const maxBodyBytes = 16 * 1024;
 const keyPattern = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -46,6 +48,14 @@ function findFlag(key: string): FlagRow | undefined {
   return db.prepare("SELECT * FROM flags WHERE key = ?").get(key) as FlagRow | undefined;
 }
 
+function decodeKey(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    throw new HttpError(400, "Flag key in the URL is not valid percent-encoding");
+  }
+}
+
 async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   let size = 0;
   const chunks: Buffer[] = [];
@@ -70,7 +80,7 @@ function send(res: ServerResponse, status: number, body?: unknown) {
 
 async function route(req: IncomingMessage, res: ServerResponse) {
   const { pathname } = new URL(req.url ?? "/", "http://localhost");
-  const flagKey = pathname.startsWith("/flags/") ? decodeURIComponent(pathname.slice("/flags/".length)) : null;
+  const flagKey = pathname.startsWith("/flags/") ? decodeKey(pathname.slice("/flags/".length)) : null;
 
   if (req.method === "GET" && pathname === "/health") return send(res, 200, { ok: true });
 
@@ -116,6 +126,6 @@ createServer((req, res) => {
     console.error(error);
     send(res, 500, { error: "Internal error" });
   });
-}).listen(port, () => {
-  console.log(`feature-flags service listening on http://localhost:${port}`);
+}).listen(port, host, () => {
+  console.log(`feature-flags service listening on http://${host}:${port}`);
 });

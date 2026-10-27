@@ -1,6 +1,7 @@
 /**
  * Reads the `app.json` manifest of every internal app under `src/app/apps/`.
  * Folder-per-app manifests let each Devin PR add an app without editing a shared registry file.
+ * Owner: spvyerra. Phase 2 access checks also read manifests, so it cannot live in the catalog page.
  */
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";

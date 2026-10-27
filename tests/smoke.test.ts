@@ -1,6 +1,7 @@
 /**
  * Smoke tests for the DevinPowerApps service path, run by root `npm test`.
  * They boot the real feature-flag service and dev server and hit them over HTTP, since that is the cheapest end-to-end proof.
+ * Owner: spvyerra.
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -52,6 +53,7 @@ test("feature-flag service creates, toggles, and deletes a flag", async () => {
 
   assert.equal((await fetch(`${flagsUrl}/flags`, json("POST", { key: "new-checkout" }))).status, 409);
   assert.equal((await fetch(`${flagsUrl}/flags`, json("POST", { key: "Bad Key" }))).status, 400);
+  assert.equal((await fetch(`${flagsUrl}/flags/%`, { method: "DELETE" })).status, 400);
 
   const toggled = await fetch(`${flagsUrl}/flags/new-checkout`, json("PATCH", { enabled: true }));
   assert.equal((await toggled.json()).enabled, true);

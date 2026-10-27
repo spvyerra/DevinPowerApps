@@ -1,6 +1,7 @@
 /**
  * Next.js config for the DevinPowerApps web app.
  * It only disables the AGENTS.md block that `next dev` injects, because that block breaks the repo's no-em-dash rule.
+ * Owner: spvyerra.
  */
 import type { NextConfig } from "next";
 

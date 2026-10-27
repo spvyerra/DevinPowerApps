@@ -1,6 +1,7 @@
 /**
  * App Catalog: the home page listing every internal app from its manifest.
  * Manifests are read at build time, which is enough because a new app always arrives through a merged PR.
+ * Owner: spvyerra.
  */
 import Link from "next/link";
 import { listApps } from "@/lib/catalog";

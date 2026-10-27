@@ -39,8 +39,8 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 10. `src/lib/catalog.ts`: reads all `app.json` files.
 11. `src/lib/services.ts`: the list of internal services with name, base URL, and API doc path, shared by Service Health and the App Creator.
 12. `src/lib/devin.ts`: builds the session prompt and, when `DEVIN_API_KEY` is set, creates and reads sessions.
-13. `services/feature-flags/server.ts`: mock service on port 4001 using `node:http` and its own `data/flags.db`.
-14. `services/feature-flags/API.md`: the service API doc, used as the "wiki" Devin reads.
+13. `services/feature-flags/server.ts`: mock service on `127.0.0.1:4001` using `node:http` and its own `data/flags.db`.
+14. `docs/services/feature-flags.md`: the service API doc, used as the "wiki" Devin reads.
 15. `tests/smoke.test.ts`: smoke tests run by root `npm test` with `node:test`.
 16. `.github/workflows/ci.yml`: lint, typecheck, test, build on PRs.
 17. `.env.example`, `.gitignore`, `docs/notes.md`.
@@ -88,7 +88,7 @@ Out: cloud deploy, Devin playbook and Knowledge setup, Devin Review loop automat
 
 ### Phase 1: Catalog, mock service, reference app
 
-- [x] Build the feature-flag service and `API.md`.
+- [x] Build the feature-flag service and its API doc.
 - [x] Add `.env.example` with placeholder values, and make `npm run dev` start Next.js and the feature-flag service together.
 - [x] Build `src/lib/catalog.ts` and the catalog page with a card per app.
 - [x] Build the Service Health app: one row per service with its name, base URL, and up or down state.
@@ -137,3 +137,4 @@ None.
 - 2026-10-26: plan approved.
 - 2026-10-26: Phase 0 done. `.env.example` and the combined dev command moved to Phase 1, since Phase 0 has no env vars and no service yet.
 - 2026-10-26: Phase 1 done. Added `src/lib/services.ts` as the one list of services, so Service Health and the Creator read base URLs and API docs from the same place.
+- 2026-10-26: per review, the service API doc moved to `docs/services/feature-flags.md` to keep docs under `./docs`, and the service binds to `127.0.0.1` because it has no auth.

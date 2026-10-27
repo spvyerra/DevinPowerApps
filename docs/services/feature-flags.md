@@ -2,10 +2,12 @@
 
 The Feature Flags service stores named true/false flags that other apps read and toggle.
 It is a mock of an internal service and stands in for the internal wiki page Devin reads when building apps.
+Owner: spvyerra.
 
 ## Base URL
 
 Server code reads the base URL from `FEATURE_FLAGS_URL`, which defaults to `http://localhost:4001`.
+The service listens on `127.0.0.1` unless `FEATURE_FLAGS_HOST` says otherwise, so other machines cannot reach it.
 Only server code (server components, server actions, route handlers) calls this service.
 Browsers never call it directly, and it has no auth or CORS.
 
@@ -55,7 +57,7 @@ Returns `204` with no body.
 
 Errors return JSON `{ "error": "message" }` with one of these statuses.
 
-1. `400`: invalid body, key, description, or enabled value.
+1. `400`: invalid body, key, description, enabled value, or percent-encoding in the URL.
 2. `404`: unknown flag key or route.
 3. `409`: a flag with that key already exists.
 4. `413`: body larger than 16 KB.

@@ -1,6 +1,7 @@
 /**
  * Service Health app: shows whether each registered internal service answers `GET /health`.
  * It is the reference pattern for new apps: a manifest, a server component, and server-side service calls.
+ * Owner: spvyerra. Each app is its own route, so it cannot share a file with the catalog.
  */
 import { Suspense } from "react";
 import Link from "next/link";
