@@ -20,7 +20,6 @@ It runs locally as a demo MVP.
    Submitting stores a draft request and its Devin prompt.
 7. Requests at `/requests`: members see their own requests and admins see all.
    Each shows the prompt with a copy button and the screenshot as a download, to paste into a new Devin session by hand.
-   Sending the request straight to the Devin API waits on a service-user key.
 
 ## Run it
 

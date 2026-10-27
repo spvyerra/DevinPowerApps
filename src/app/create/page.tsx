@@ -81,7 +81,7 @@ export default function CreatePage() {
     <main className="page narrow-form">
       <h1>Create an app</h1>
       <p>Describe the app you need. Devin builds it and opens a pull request.</p>
-      <CreateForm action={createApp} services={services.map(({ slug, name }) => ({ slug, name }))} />
+      <CreateForm action={createApp} services={services.map(({ slug, name }) => ({ slug, name }))} maxScreenshotBytes={maxScreenshotBytes} />
     </main>
   );
 }

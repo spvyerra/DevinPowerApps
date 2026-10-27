@@ -1,9 +1,9 @@
-"use client";
 /**
  * Button that copies a request's Devin prompt to the clipboard.
  * Clipboard access needs a client component, so it cannot live in the server page.
  * Owner: spvyerra.
  */
+"use client";
 import { useState } from "react";
 
 /** Copies `text` to the clipboard and briefly confirms. */

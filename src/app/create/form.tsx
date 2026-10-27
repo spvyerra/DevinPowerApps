@@ -1,9 +1,9 @@
-"use client";
 /**
  * Client form for the App Creator, showing validation errors from the server action without losing input.
  * `useActionState` needs a client component, so the form cannot live in the server page.
  * Owner: spvyerra.
  */
+"use client";
 import { useActionState } from "react";
 
 export type CreateState = {
@@ -14,10 +14,11 @@ export type CreateState = {
 type Props = {
   action: (state: CreateState, formData: FormData) => Promise<CreateState>;
   services: { slug: string; name: string }[];
+  maxScreenshotBytes: number;
 };
 
 /** Renders the create-app form and its error message. */
-export function CreateForm({ action, services }: Props) {
+export function CreateForm({ action, services, maxScreenshotBytes }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
     <form action={formAction} className="form">
@@ -32,7 +33,17 @@ export function CreateForm({ action, services }: Props) {
       </label>
       <label>
         Screenshot or mockup (optional, PNG or JPEG, up to 5 MB)
-        <input type="file" name="screenshot" key={state.error} accept="image/png,image/jpeg" />
+        <input
+          type="file"
+          name="screenshot"
+          key={state.error}
+          accept="image/png,image/jpeg"
+          onChange={(event) => {
+            const file = event.currentTarget.files?.[0];
+            event.currentTarget.setCustomValidity(file && file.size > maxScreenshotBytes ? "The screenshot must be 5 MB or smaller." : "");
+            event.currentTarget.reportValidity();
+          }}
+        />
       </label>
       <fieldset>
         <legend>Services to use</legend>
