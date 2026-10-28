@@ -119,6 +119,22 @@ test("feature-flag service creates, toggles, and deletes a flag", async () => {
   assert.equal((await fetch(`${flagsUrl}/flags/new-checkout`, { method: "DELETE" })).status, 404);
 });
 
+test("feature flag admin panel lists flags with a toggle and stays locked for members", async () => {
+  assert.equal((await fetch(`${flagsUrl}/flags`, json("POST", { key: "panel-flag", description: "Shown in the panel" }))).status, 201);
+  const admin = await signIn("admin@example.com");
+  assert.match(await (await get("/", admin)).text(), /href="\/apps\/feature-flag-admin-panel"/);
+  const panel = await get("/apps/feature-flag-admin-panel", admin);
+  assert.equal(panel.status, 200);
+  const html = await panel.text();
+  assert.match(html, /panel-flag/);
+  assert.match(html, /Shown in the panel/);
+  assert.match(html, />Turn on</);
+  assert.match(html, /Create flag/);
+  const denied = await get("/apps/feature-flag-admin-panel", await signIn("member@example.com"));
+  assert.match(denied.headers.get("location") ?? "", /\/no-access\?app=feature-flag-admin-panel/);
+  assert.equal((await fetch(`${flagsUrl}/flags/panel-flag`, { method: "DELETE" })).status, 204);
+});
+
 test("signed-out visitors are sent to sign-in", async () => {
   const response = await get("/apps/service-health");
   assert.equal(response.status, 307);
