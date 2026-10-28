@@ -15,7 +15,7 @@ It is the first app built from an App Creator request, requested by sai@example.
 3. Each server action re-checks `canOpenApp` for this app.
    The request said to add no auth code because `src/proxy.ts` guards `/apps/<slug>`, but the Next.js 16 docs (`proxy.md`, `data-security.md`) say to verify auth inside each server function and not rely on the proxy alone.
    `AGENTS.md` also says never to simplify away security, so this is a three-line guard that reuses `canOpenApp`.
-4. One small client component shows service errors (for example `409` on a duplicate key) next to the form that caused them, using `useActionState` like the App Creator form.
+4. Small client components show service errors (for example `409` on a duplicate key) next to the form that caused them, using `useActionState` like the App Creator form.
    It also asks for confirmation before a delete, since a delete cannot be undone.
 
 ## Scope
@@ -30,7 +30,9 @@ Out: editing descriptions, bulk actions, search, audit history.
    `createFlag` calls `POST /flags`.
    `changeFlag` calls `PATCH /flags/:key` for the toggle and `DELETE /flags/:key` for delete, picked by the submit button's `intent`.
    Both call `revalidatePath` on success, so the list re-renders.
-3. `src/app/apps/feature-flags-admin-panel/form.tsx`: client `ActionForm` wrapping a server action with `useActionState`, showing its error and confirming buttons that carry `data-confirm`.
+3. `src/app/apps/feature-flags-admin-panel/form.tsx`: two client components built on `useActionState` that show the service error next to the form that caused it.
+   `CreateFlagForm` keeps the typed key and description after an error.
+   `FlagControls` renders the On/Off switch and the Delete button, whose `onClick` asks `window.confirm` before submitting.
 
 ## Steps
 
@@ -54,4 +56,5 @@ None.
 ## Status log
 
 - 2026-10-28: plan written from the App Creator request.
+- 2026-10-28: per review, the Design section now names `CreateFlagForm` and `FlagControls`, which replaced the planned single `ActionForm` so the create form can keep its input after an error.
 - 2026-10-28: done. Lint, typecheck, test, and build pass, and create, toggle, duplicate-key error, delete confirm and cancel were checked in the browser as admin.
