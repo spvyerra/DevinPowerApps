@@ -79,6 +79,22 @@ function json(method: string, body: unknown): RequestInit {
   return { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
 }
 
+async function submitForm(page: string, marker: string, fields: Record<string, string>, cookie: string, path: string): Promise<Response> {
+  const form = page.match(/<form[^>]*>.*?<\/form>/g)?.find((html) => html.includes(marker));
+  assert.ok(form, `no form containing ${marker}`);
+  const body = new FormData();
+  for (const [, name, value = ""] of form.matchAll(/<input type="hidden" name="([^"]+)"(?: value="([^"]*)")?/g)) {
+    body.append(name, value.replaceAll("&quot;", '"').replaceAll("&amp;", "&"));
+  }
+  for (const [name, value] of Object.entries(fields)) body.set(name, value);
+  return fetch(`${webUrl}${path}`, { method: "POST", redirect: "manual", headers: { cookie }, body });
+}
+
+async function flagKeys(): Promise<Record<string, boolean>> {
+  const flags: { key: string; enabled: boolean }[] = await (await fetch(`${flagsUrl}/flags`)).json();
+  return Object.fromEntries(flags.map((flag) => [flag.key, flag.enabled]));
+}
+
 before(async () => {
   await new Promise<void>((resolve) => fakeDevin.listen(4200, "127.0.0.1", resolve));
   start("node", ["services/feature-flags/server.ts"], { FEATURE_FLAGS_PORT: "4100", FEATURE_FLAGS_DB: join(dataDir, "flags.db") });
@@ -119,20 +135,27 @@ test("feature-flag service creates, toggles, and deletes a flag", async () => {
   assert.equal((await fetch(`${flagsUrl}/flags/new-checkout`, { method: "DELETE" })).status, 404);
 });
 
-test("feature flag admin panel lists flags with a toggle and stays locked for members", async () => {
-  assert.equal((await fetch(`${flagsUrl}/flags`, json("POST", { key: "panel-flag", description: "Shown in the panel" }))).status, 201);
+test("feature flag admin panel creates, toggles, and deletes flags through its server actions", async () => {
+  const panelPath = "/apps/feature-flag-admin-panel";
   const admin = await signIn("admin@example.com");
   assert.match(await (await get("/", admin)).text(), /href="\/apps\/feature-flag-admin-panel"/);
-  const panel = await get("/apps/feature-flag-admin-panel", admin);
-  assert.equal(panel.status, 200);
-  const html = await panel.text();
-  assert.match(html, /panel-flag/);
-  assert.match(html, /Shown in the panel/);
-  assert.match(html, />Turn on</);
-  assert.match(html, /Create flag/);
-  const denied = await get("/apps/feature-flag-admin-panel", await signIn("member@example.com"));
+  const empty = await (await get(panelPath, admin)).text();
+  await submitForm(empty, "narrow-form", { key: "panel-flag", description: "Shown in the panel" }, admin, panelPath);
+  assert.deepEqual(await flagKeys(), { "panel-flag": false });
+
+  const page = await (await get(panelPath, admin)).text();
+  assert.match(page, /Shown in the panel/);
+  await submitForm(page, "Turn on panel-flag", {}, admin, panelPath);
+  assert.deepEqual(await flagKeys(), { "panel-flag": true });
+
+  const member = await signIn("member@example.com");
+  const denied = await get(panelPath, member);
   assert.match(denied.headers.get("location") ?? "", /\/no-access\?app=feature-flag-admin-panel/);
-  assert.equal((await fetch(`${flagsUrl}/flags/panel-flag`, { method: "DELETE" })).status, 204);
+  assert.equal((await submitForm(page, "Delete panel-flag", {}, member, panelPath)).status, 307);
+  assert.deepEqual(await flagKeys(), { "panel-flag": true });
+
+  await submitForm(page, "Delete panel-flag", {}, admin, panelPath);
+  assert.deepEqual(await flagKeys(), {});
 });
 
 test("signed-out visitors are sent to sign-in", async () => {
