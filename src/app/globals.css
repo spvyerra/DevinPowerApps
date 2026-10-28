@@ -284,3 +284,28 @@ button:disabled {
   background: #fff6e5;
   color: #5c3800;
 }
+
+.row > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button.switch {
+  min-width: 64px;
+  border-radius: 999px;
+  border-color: var(--border);
+  background: transparent;
+  color: var(--foreground);
+}
+
+button.switch[aria-checked="true"] {
+  border-color: #d9f5e1;
+  background: #d9f5e1;
+  color: #0b6b2b;
+}

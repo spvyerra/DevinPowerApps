@@ -136,6 +136,22 @@ test("admin sees the catalog and opens Service Health with the service up", asyn
   assert.equal((await get("/admin/access", admin)).status, 200);
 });
 
+test("admin sees flags with their state in the Feature Flags Admin Panel, and members without a grant do not", async () => {
+  await fetch(`${flagsUrl}/flags`, json("POST", { key: "panel-flag", description: "Shown in the panel" }));
+  await fetch(`${flagsUrl}/flags/panel-flag`, json("PATCH", { enabled: true }));
+  const admin = await signIn("admin@example.com");
+  assert.match(await (await get("/", admin)).text(), /href="\/apps\/feature-flags-admin-panel"/);
+  const panel = await get("/apps/feature-flags-admin-panel", admin);
+  assert.equal(panel.status, 200);
+  const html = await panel.text();
+  assert.match(html, /<strong>panel-flag<\/strong>/);
+  assert.match(html, /Shown in the panel/);
+  assert.match(html, /aria-checked="true" aria-label="panel-flag"/);
+  const denied = await get("/apps/feature-flags-admin-panel", await signIn("member@example.com"));
+  assert.match(denied.headers.get("location") ?? "", /\/no-access\?app=feature-flags-admin-panel/);
+  assert.equal((await fetch(`${flagsUrl}/flags/panel-flag`, { method: "DELETE" })).status, 204);
+});
+
 test("members open only granted apps and never the admin panel", async () => {
   const member = await signIn("member@example.com");
   const denied = await get("/apps/service-health", member);

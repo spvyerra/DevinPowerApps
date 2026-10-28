@@ -28,6 +28,10 @@ Set it to false or drop it if the app ever sits behind an untrusted host header.
 
 Access checks run in `src/proxy.ts`, which runs on the Node.js runtime in Next.js 16, so it can read SQLite directly.
 Server actions re-check the admin role themselves, because the proxy does not cover them.
+App pages under `/apps/<slug>` that have server actions re-check `canOpenApp` inside each action, because the Next.js 16 docs say to verify auth inside every server function and not rely on the proxy alone.
+
+The Feature Flags Admin Panel cannot edit a flag description, because the Feature Flags API only updates `enabled`.
+Adding that needs a `description` field on `PATCH /flags/:key` in the service and its API doc first.
 
 Under `cacheComponents`, call `await connection()` before `auth()` in a server component.
 Auth.js calls `crypto.getRandomValues()` before it reads cookies, so without it the dev server logs a blocking-prerender error and the page renders empty.

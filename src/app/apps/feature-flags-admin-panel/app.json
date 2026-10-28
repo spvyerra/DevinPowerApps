@@ -1,0 +1,6 @@
+{
+  "name": "Feature Flags Admin Panel",
+  "description": "Lists every feature flag with an on/off toggle, and creates and deletes flags.",
+  "owner": "sai@example.com",
+  "services": ["feature-flags"]
+}
